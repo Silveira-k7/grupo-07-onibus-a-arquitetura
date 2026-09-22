@@ -1,0 +1,44 @@
+========================================================================
+SPIKE -- reconciliacao de saldo com validacao offline (Caso Onibus / A)
+========================================================================
+Eventos gerados (linha do tempo real): 52
+Eventos entregues a central (com retransmissoes, fora de ordem): 60
+Duplicatas de rede filtradas pelo reconciliador: 8
+Eventos que chegaram fora de ordem (bufferizados ate a sequencia fechar): 32
+
+------------------------------------------------------------------------
+Cartao      Saldo real   Reconciliador (idempotente)         Ingenuo
+------------------------------------------------------------------------
+C001             41.40                         41.40           91.40   [OK]
+C002             19.90                         19.90           19.90   [OK]
+C003             24.20                         24.20           24.20   [OK]
+C004             15.60                         15.60            2.70   [OK]
+C005             19.90                         19.90            7.00   [OK]
+C006             28.50                         28.50           24.20   [OK]
+C007             24.20                         24.20           24.20   [OK]
+C008             37.10                         37.10           37.10   [OK]
+------------------------------------------------------------------------
+
+Reconstrucao a partir da trilha imutavel bate com o saldo em memoria: SIM
+
+Cartoes onde o reconciliador ingenuo diverge do saldo real: 4 de 8
+(cada divergencia e dinheiro contado errado por causa de retransmissao
+ de rede nao tratada -- exatamente o risco que a decisao mitiga.)
+
+Uso duplicado da mesma passagem em onibus diferentes, detectado na
+trilha imutavel (o validador embarcado nao podia ver isso offline):
+  - C006: debito em BUS04 (min 165) e BUS02 (min 167) -- diferenca de 2 min
+  - C002: debito em BUS01 (min 43) e BUS03 (min 46) -- diferenca de 3 min
+  - C002: debito em BUS01 (min 160) e BUS03 (min 163) -- diferenca de 3 min
+  - C004: debito em BUS01 (min 62) e BUS03 (min 63) -- diferenca de 1 min
+  - C004: debito em BUS03 (min 63) e BUS01 (min 67) -- diferenca de 4 min
+  - C004: debito em BUS03 (min 104) e BUS01 (min 107) -- diferenca de 3 min
+  - C007: debito em BUS02 (min 31) e BUS03 (min 36) -- diferenca de 5 min
+  - C008: debito em BUS04 (min 126) e BUS02 (min 129) -- diferenca de 3 min
+
+========================================================================
+RESULTADO: PASS -- a reconciliacao idempotente bate com a realidade,
+a trilha e reconstruivel do zero, e tanto o desvio do reconciliador
+ingenuo quanto a deteccao de uso duplicado provam por que a decisao
+da matriz (eventos + idempotencia + trilha imutavel) e necessaria.
+========================================================================
